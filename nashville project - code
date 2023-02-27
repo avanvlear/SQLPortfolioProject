@@ -1,0 +1,54 @@
+CREATE TABLE nashville (
+	UniqueID INT PRIMARY KEY,
+	ParcelID VARCHAR(20),
+	LandUse VARCHAR(50),
+	PropertyAddress VARCHAR(50),
+	SaleDate VARCHAR(50),
+	SalePrice VARCHAR(50),
+	LegalReference VARCHAR(50),
+	SoldAsVacant VARCHAR(10),
+	OwnerName VARCHAR(75),
+	OwnerAddress VARCHAR(50),
+	Acerage FLOAT(2),
+	TaxDistrict VARCHAR(50),
+	LandValue INT,
+	BuildingValue INT,
+	TotalValue INT,
+	YearBuilt INT,
+	Bedrooms INT,
+	FullBath INT,
+	HalfBath INT
+);
+
+-- Clean date --
+
+UPDATE nashville
+SET saledate = CAST(SaleDate AS Date);
+
+-- Populate Property Address --
+
+/* populate nulls with address from matching parcelID */
+
+UPDATE housingdata AS a
+SET PropertyAddress = COALESCE(b.propertyaddress, a.propertyaddress)
+FROM housingdata b 
+WHERE a.parcelid = b.parcelid 
+AND a.uniqueid <> b.uniqueid 
+AND a.propertyaddress IS NULL;
+
+/* Breaking out address into individual columns (Address, City, State) */
+
+ALTER TABLE nashville
+add propertysplitaddress VARCHAR(255);
+
+UPDATE nashville
+SET propertysplitaddress = SPLIT_PART(propertyaddress, ',', 1);
+
+ALTER TABLE nashville
+add propertysplitcity VARCHAR(255);
+
+UPDATE nashville
+SET propertysplitcity = SPLIT_PART(propertyaddress, ',', 2);
+
+
+
